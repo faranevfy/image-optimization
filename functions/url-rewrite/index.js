@@ -1,15 +1,15 @@
-// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-// SPDX-License-Identifier: MIT-0
-
 function handler(event) {
     var request = event.request;
     var originalImagePath = request.uri;
     //  validate, process and normalize the requested operations in query parameters
+
+    //the coming url would be like /image.jpeg?f=auto&w=200&h=200&q=80
+
     var normalizedOperations = {};
     if (request.querystring) {
         Object.keys(request.querystring).forEach(operation => {
             switch (operation.toLowerCase()) {
-                case 'format': 
+                case 'f': 
                     var SUPPORTED_FORMATS = ['auto', 'jpeg', 'webp', 'avif', 'png', 'svg', 'gif'];
                     if (request.querystring[operation]['value'] && SUPPORTED_FORMATS.includes(request.querystring[operation]['value'].toLowerCase())) {
                         var format = request.querystring[operation]['value'].toLowerCase(); // normalize to lowercase
@@ -26,25 +26,27 @@ function handler(event) {
                         normalizedOperations['format'] = format;
                     }
                     break;
-                case 'width':
+                case 'w':
                     if (request.querystring[operation]['value']) {
                         var width = parseInt(request.querystring[operation]['value']);
                         if (!isNaN(width) && (width > 0)) {
-                            // you can protect the Lambda function by setting a max value, e.g. if (width > 4000) width = 4000;
+                            // you can protect the Lambda function by setting a max value, e.g. if (width > 3840) width = 3840;
+                            width = Math.min(width, 3840);
                             normalizedOperations['width'] = width.toString();
                         }
                     }
                     break;
-                case 'height':
+                case 'h':
                     if (request.querystring[operation]['value']) {
                         var height = parseInt(request.querystring[operation]['value']);
                         if (!isNaN(height) && (height > 0)) {
-                            // you can protect the Lambda function by setting a max value, e.g. if (height > 4000) height = 4000;
+                            // you can protect the Lambda function by setting a max value, e.g. if (height > 2160) height = 2160;
+                            height= Math.min(height, 2160);
                             normalizedOperations['height'] = height.toString();
                         }
                     }
                     break;
-                case 'quality':
+                case 'q':
                     if (request.querystring[operation]['value']) {
                         var quality = parseInt(request.querystring[operation]['value']);
                         if (!isNaN(quality) && (quality > 0)) {
@@ -56,6 +58,8 @@ function handler(event) {
                 default: break;
             }
         });
+
+        // console.log('normalizedOperations', normalizedOperations);
         //rewrite the path to normalized version if valid operations are found
         if (Object.keys(normalizedOperations).length > 0) {
             // put them in order
