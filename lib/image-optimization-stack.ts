@@ -178,7 +178,8 @@ export class ImageOptimizationStack extends Stack {
     var imageProcessing = new lambda.Function(
       this,
       "image-optimization",
-      lambdaProps
+      lambdaProps,
+      
     );
 
     // Enable Lambda URL

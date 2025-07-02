@@ -18,17 +18,25 @@ export const handler = async (event) => {
     imagePathArray.shift();
     var originalImagePath = imagePathArray.join('/');
 
+    console.log("originalImagePath", originalImagePath);
+
     var startTime = performance.now();
     // Downloading original image
     let originalImageBody;
     let contentType;
+    let bytes;
+    //fix for heif image format
+    const unSuportedFormats = ['heif', 'heic'];
     try {
         const getOriginalImageCommand = new GetObjectCommand({ Bucket: S3_ORIGINAL_IMAGE_BUCKET, Key: originalImagePath });
         const getOriginalImageCommandOutput = await s3Client.send(getOriginalImageCommand);
         console.log(`Got response from S3 for ${originalImagePath}`);
 
         originalImageBody = getOriginalImageCommandOutput.Body.transformToByteArray();
+        bytes = await originalImageBody;
+        console.log("originalImageBody", bytes);
         contentType = getOriginalImageCommandOutput.ContentType;
+        console.log("contentType", contentType);
     } catch (error) {
         if (error.name === "NoSuchKey") {
           return sendError(404, "The requested image does not exist", error);
@@ -38,11 +46,25 @@ export const handler = async (event) => {
     let transformedImage = Sharp(await originalImageBody, { failOn: 'none', animated: true });
     // Get image orientation to rotate if needed
     const imageMetadata = await transformedImage.metadata();
-    // console.log("imageMetadata", imageMetadata);
+    console.log("imageMetadata", imageMetadata);
+    var timingLog = 'img-download;dur=' + parseInt(performance.now() - startTime);
+
+    if(unSuportedFormats.includes(imageMetadata.format)) {
+        console.log("sending original image because of unSuportedFormats");
+        return {
+        statusCode: 200,
+        isBase64Encoded: true,
+        body: Buffer.from(bytes).toString('base64'),
+        headers: {
+            'Content-Type': contentType,
+            'Cache-Control': 'max-age=0',
+            'Server-Timing': timingLog
+            }
+        }
+    }
     // execute the requested operations 
     const operationsJSON = Object.fromEntries(operationsPrefix.split(',').map(operation => operation.split('=')));
     // variable holding the server timing header value
-    var timingLog = 'img-download;dur=' + parseInt(performance.now() - startTime);
     startTime = performance.now();
     try {
         // check if resizing is requested
