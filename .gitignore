@@ -1,5 +1,6 @@
 *.js
 !/functions/url-rewrite/index.js
+!/functions/url-rewrite/test.js
 !jest.config.js
 *.d.ts
 node_modules

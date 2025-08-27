@@ -6,6 +6,7 @@
   },
   "scripts": {
     "prebuild": "npm install sharp --cpu=x64 --os=linux --libc=glibc --prefix functions/image-processing",
+    "prebuild-test-lambda": "npm install sharp --cpu=x64 --os=linux --libc=glibc --prefix functions/test-heic",
     "build": "tsc",
     "watch": "tsc -w",
     "test": "jest",
