@@ -235,7 +235,7 @@ export class ImageOptimizationStack extends Stack {
         filePath: "functions/url-rewrite/index.js",
       }),
       functionName: `urlRewriteFunction${this.node.addr}`,
-      // runtime: cloudfront.FunctionRuntime.JS_2_0
+      runtime: cloudfront.FunctionRuntime.JS_2_0
     });
 
     var imageDeliveryCacheBehaviorConfig: ImageDeliveryCacheBehaviorConfig = {
